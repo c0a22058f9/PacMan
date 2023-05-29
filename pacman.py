@@ -1,7 +1,8 @@
 #Pacman in Python with PyGame
 #https://github.com/hbokmann/Pacman
   
-import pygame._view
+import pygame
+import random
   
 black = (0,0,0)
 white = (255,255,255)
@@ -11,8 +12,8 @@ red = (255,0,0)
 purple = (255,0,255)
 yellow   = ( 255, 255,   0)
 
-Trollicon=pygame.image.load('images/Trollman.png')
-pygame.display.set_icon(Trollicon)
+pacman=pygame.image.load('images/pacman.png')
+pygame.display.set_icon(pacman)
 
 #Add music
 pygame.mixer.init()
@@ -196,6 +197,19 @@ class Player(pygame.sprite.Sprite):
           if gate_hit:
             self.rect.left=old_x
             self.rect.top=old_y
+
+    def teleport(self, width, height):
+      """
+      テレポート機能に関するメソッド
+      引数1:ランダムな位置の幅の範囲
+      引数2:ランダムな位置の高さの範囲
+      """
+      while True:
+        self.rect.x = random.randrange(18, width-30, 30)  #通路の真ん中にpacmanが来るように最低値を18に設定
+        self.rect.y = random.randrange(18, height-30, 30)
+        if not((self.rect.x >= 258 and self.rect.x <= 348)\
+          and (self.rect.y == 258)):  #迷路の真ん中にある小部屋に入らないための条件分岐
+          break
 
 #Inheritime Player klassist
 class Ghost(Player):
@@ -398,7 +412,7 @@ def startGame():
 
 
   # Create the player paddle object
-  Pacman = Player( w, p_h, "images/Trollman.png" )
+  Pacman = Player( w, p_h, "images/pacman.png" )
   all_sprites_list.add(Pacman)
   pacman_collide.add(Pacman)
    
@@ -464,6 +478,13 @@ def startGame():
                   Pacman.changespeed(0,-30)
               if event.key == pygame.K_DOWN:
                   Pacman.changespeed(0,30)
+              if event.key == pygame.K_t:  #Tキーが押されたときの処理
+                  while True:
+                     Pacman.teleport(screen.get_width(), screen.get_height())  #テレポート位置を画面の幅と高さのランダムな位置に指定
+                     pac_collide = pygame.sprite.spritecollide(Pacman, wall_list, False)  #pacmanと壁の衝突判定
+                     pg_collide = pygame.sprite.spritecollide(Pacman, gate, False)  #pacmanと扉の衝突判定
+                     if (not pac_collide) and (not pg_collide):  #壁と扉に当たっていなければbreak、そうでなければ繰り返す
+                        break
 
           if event.type == pygame.KEYUP:
               if event.key == pygame.K_LEFT:
